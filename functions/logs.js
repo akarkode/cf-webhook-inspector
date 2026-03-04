@@ -25,13 +25,12 @@ async function collectRecentLogs(env) {
 
   if (!keys.length) return [];
 
-  const names = keys.map((k) => k.name);
   const logs = [];
 
   // Batch reads to avoid overwhelming KV with a single large Promise.all.
-  for (let i = 0; i < names.length; i += 20) {
-    const batch = names.slice(i, i + 20);
-    const chunk = await Promise.all(batch.map((name) => env.LOGS.get(name, { type: 'json' })));
+  for (let i = 0; i < keys.length; i += 20) {
+    const batchNames = keys.slice(i, i + 20).map((k) => k.name);
+    const chunk = await Promise.all(batchNames.map((name) => env.LOGS.get(name, { type: 'json' })));
     logs.push(...chunk.filter(Boolean));
   }
 
