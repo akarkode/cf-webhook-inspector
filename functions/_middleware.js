@@ -1,5 +1,14 @@
 const MAX_BODY_LENGTH = 500;
-const MAX_LOG_ENTRIES = 200;
+const LOG_PREFIX = 'log:';
+const LOG_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+function buildLogKey(now) {
+  const tsPart = String(now).padStart(13, '0');
+  const rand = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(16).slice(2);
+  return `${LOG_PREFIX}${tsPart}:${rand}`;
+}
 
 export async function onRequest(context) {
   const { request, env, next } = context;
@@ -10,7 +19,8 @@ export async function onRequest(context) {
     return next();
   }
 
-  const timestamp = new Date().toISOString();
+  const now = Date.now();
+  const timestamp = new Date(now).toISOString();
   const method = request.method;
   const path = url.pathname + url.search;
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -43,10 +53,9 @@ export async function onRequest(context) {
         country,
         status: response.status,
       };
-      const raw = await env.LOGS.get('webhook_logs');
-      const logs = raw ? JSON.parse(raw) : [];
-      logs.unshift(entry);
-      await env.LOGS.put('webhook_logs', JSON.stringify(logs.slice(0, MAX_LOG_ENTRIES)));
+       await env.LOGS.put(buildLogKey(now), JSON.stringify(entry), {
+         expirationTtl: LOG_TTL_SECONDS,
+       });
     } catch (_) {}
   }
 

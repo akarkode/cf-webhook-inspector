@@ -1,3 +1,16 @@
+const LOG_PREFIX = 'log:';
+
+async function deleteAllLogs(env) {
+  let cursor;
+  do {
+    const res = await env.LOGS.list({ prefix: LOG_PREFIX, cursor, limit: 1000 });
+    if (res.keys.length) {
+      await Promise.all(res.keys.map(({ name }) => env.LOGS.delete(name)));
+    }
+    cursor = res.list_complete ? null : res.cursor;
+  } while (cursor);
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -9,7 +22,7 @@ export async function onRequest(context) {
   }
 
   try {
-    await env.LOGS.put('webhook_logs', JSON.stringify([]));
+    await deleteAllLogs(env);
     return new Response(JSON.stringify({ success: true, message: 'All logs cleared' }), {
       headers: { 'Content-Type': 'application/json' },
     });
