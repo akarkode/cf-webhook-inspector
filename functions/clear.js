@@ -5,7 +5,10 @@ async function deleteAllLogs(env) {
   do {
     const res = await env.LOGS.list({ prefix: LOG_PREFIX, cursor, limit: 1000 });
     if (res.keys.length) {
-      await Promise.all(res.keys.map(({ name }) => env.LOGS.delete(name)));
+      for (let i = 0; i < res.keys.length; i += 100) {
+        const batch = res.keys.slice(i, i + 100);
+        await Promise.all(batch.map(({ name }) => env.LOGS.delete(name)));
+      }
     }
     cursor = res.list_complete ? null : res.cursor;
   } while (cursor);

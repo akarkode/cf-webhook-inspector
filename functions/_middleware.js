@@ -1,9 +1,10 @@
 const MAX_BODY_LENGTH = 500;
 const LOG_PREFIX = 'log:';
 const LOG_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const INVERT_BASE = Number.MAX_SAFE_INTEGER;
 
 function buildLogKey(now) {
-  const tsPart = String(now).padStart(16, '0'); // padded for lexicographic ordering with room for future growth
+  const tsPart = String(INVERT_BASE - now).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
   const rand = crypto.randomUUID();
   return `${LOG_PREFIX}${tsPart}:${rand}`;
 }

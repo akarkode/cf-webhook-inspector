@@ -18,27 +18,23 @@ function safeJson(data) {
 }
 
 async function collectRecentLogs(env) {
-  const keys = [];
-  let cursor;
+  const { keys } = await env.LOGS.list({
+    prefix: LOG_PREFIX,
+    limit: MAX_LOG_ENTRIES,
+  });
 
-  do {
-    const res = await env.LOGS.list({
-      prefix: LOG_PREFIX,
-      cursor,
-      limit: MAX_LOG_ENTRIES,
-    });
-    keys.push(...res.keys.map((k) => k.name));
-    cursor = res.list_complete ? null : res.cursor;
-    if (keys.length >= MAX_LOG_ENTRIES) {
-      cursor = null;
-    }
-  } while (cursor);
+  if (!keys.length) return [];
 
-  const sorted = keys.sort((a, b) => (a < b ? 1 : -1)).slice(0, MAX_LOG_ENTRIES);
-  if (!sorted.length) return [];
+  const names = keys.map((k) => k.name);
+  const logs = [];
 
-  const logs = await Promise.all(sorted.map((name) => env.LOGS.get(name, { type: 'json' })));
-  return logs.filter(Boolean);
+  for (let i = 0; i < names.length; i += 20) {
+    const batch = names.slice(i, i + 20);
+    const chunk = await Promise.all(batch.map((name) => env.LOGS.get(name, { type: 'json' })));
+    logs.push(...chunk.filter(Boolean));
+  }
+
+  return logs;
 }
 
 function buildHTML(logs, domain, kvError) {
