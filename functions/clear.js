@@ -1,4 +1,4 @@
-const LOG_PREFIX = 'log:';
+import { LOG_PREFIX } from './_constants';
 
 async function deleteAllLogs(env) {
   let cursor;

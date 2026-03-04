@@ -1,5 +1,4 @@
-const MAX_LOG_ENTRIES = 200;
-const LOG_PREFIX = 'log:';
+import { LOG_PREFIX, MAX_LOG_ENTRIES, LOG_TTL_DAYS } from './_constants';
 
 // Escape HTML special characters for safe embedding in HTML attributes / text nodes.
 function escapeHtml(s) {
@@ -165,7 +164,7 @@ ${kvError ? `<div class="err-banner">&#x26A0;&#xFE0F; KV Error: ${escapeHtml(kvE
 </div>
 
 <footer class="footer">
-  <span>Showing <span id="vis-count">${total}</span> of <span id="total-footer">${total}</span> entries &bull; displaying latest 200 (entries auto-expire after 7 days)</span>
+  <span>Showing <span id="vis-count">${total}</span> of <span id="total-footer">${total}</span> entries &bull; displaying latest ${MAX_LOG_ENTRIES} (entries auto-expire after ${LOG_TTL_DAYS} days)</span>
   <div class="rf-ind">
     <div class="rf-dot active" id="rf-dot"></div>
     <span id="rf-label">Auto-refresh every 5s</span>
