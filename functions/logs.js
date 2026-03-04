@@ -164,7 +164,7 @@ ${kvError ? `<div class="err-banner">&#x26A0;&#xFE0F; KV Error: ${escapeHtml(kvE
 </div>
 
 <footer class="footer">
-  <span>Showing <span id="vis-count">${total}</span> of <span id="total-footer">${total}</span> entries &bull; up to ${MAX_LOG_ENTRIES} retained (entries auto-expire after ${LOG_TTL_DAYS} days)</span>
+  <span>Visible: <span id="vis-count">${total}</span> / Total: <span id="total-footer">${total}</span> &bull; up to ${MAX_LOG_ENTRIES} retained (entries auto-expire after ${LOG_TTL_DAYS} days)</span>
   <div class="rf-ind">
     <div class="rf-dot active" id="rf-dot"></div>
     <span id="rf-label">Auto-refresh every 5s</span>
