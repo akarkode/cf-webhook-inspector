@@ -1,3 +1,20 @@
+import { KV_DELETE_BATCH_SIZE, LOG_PREFIX } from './_constants';
+
+async function deleteAllLogs(env) {
+  let cursor;
+  do {
+    const res = await env.LOGS.list({ prefix: LOG_PREFIX, cursor, limit: 1000 });
+    if (res.keys.length) {
+      // Delete in smaller batches to reduce per-request KV concurrency spikes.
+      for (let i = 0; i < res.keys.length; i += KV_DELETE_BATCH_SIZE) {
+        const batch = res.keys.slice(i, i + KV_DELETE_BATCH_SIZE);
+        await Promise.all(batch.map(({ name }) => env.LOGS.delete(name)));
+      }
+    }
+    cursor = res.cursor || null;
+  } while (cursor);
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -9,7 +26,7 @@ export async function onRequest(context) {
   }
 
   try {
-    await env.LOGS.put('webhook_logs', JSON.stringify([]));
+    await deleteAllLogs(env);
     return new Response(JSON.stringify({ success: true, message: 'All logs cleared' }), {
       headers: { 'Content-Type': 'application/json' },
     });

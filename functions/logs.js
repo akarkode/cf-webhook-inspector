@@ -1,3 +1,5 @@
+import { KV_READ_BATCH_SIZE, LOG_PREFIX, MAX_LOG_ENTRIES, LOG_TTL_DAYS } from './_constants';
+
 // Escape HTML special characters for safe embedding in HTML attributes / text nodes.
 function escapeHtml(s) {
   if (s == null) return '';
@@ -12,6 +14,26 @@ function escapeHtml(s) {
 // Safely embed arbitrary data as a JS literal inside a <script> block.
 function safeJson(data) {
   return JSON.stringify(data).replace(/<\//g, '<\\/');
+}
+
+async function collectRecentLogs(env) {
+  const { keys } = await env.LOGS.list({
+    prefix: LOG_PREFIX,
+    limit: MAX_LOG_ENTRIES,
+  });
+
+  if (!keys.length) return [];
+
+  const logs = [];
+
+  // Batch reads to avoid overwhelming KV with a single large Promise.all.
+  for (let i = 0; i < keys.length; i += KV_READ_BATCH_SIZE) {
+    const batchNames = keys.slice(i, i + KV_READ_BATCH_SIZE).map((k) => k.name);
+    const chunk = await Promise.all(batchNames.map((name) => env.LOGS.get(name, { type: 'json' })));
+    logs.push(...chunk.filter(Boolean));
+  }
+
+  return logs;
 }
 
 function buildHTML(logs, domain, kvError) {
@@ -142,7 +164,7 @@ ${kvError ? `<div class="err-banner">&#x26A0;&#xFE0F; KV Error: ${escapeHtml(kvE
 </div>
 
 <footer class="footer">
-  <span>Showing <span id="vis-count">${total}</span> of <span id="total-footer">${total}</span> entries &bull; max 200 stored</span>
+  <span>Visible: <span id="vis-count">${total}</span> / Total: <span id="total-footer">${total}</span> &bull; up to ${MAX_LOG_ENTRIES} retained (entries auto-expire after ${LOG_TTL_DAYS} days)</span>
   <div class="rf-ind">
     <div class="rf-dot active" id="rf-dot"></div>
     <span id="rf-label">Auto-refresh every 5s</span>
@@ -358,8 +380,7 @@ export async function onRequest(context) {
   if (url.searchParams.get('api') === '1') {
     let logs = [];
     try {
-      const raw = await env.LOGS.get('webhook_logs');
-      logs = raw ? JSON.parse(raw) : [];
+      logs = await collectRecentLogs(env);
     } catch (e) {
       return new Response(JSON.stringify({ error: e.message }), {
         status: 500,
@@ -378,8 +399,7 @@ export async function onRequest(context) {
   let logs = [];
   let kvError = null;
   try {
-    const raw = await env.LOGS.get('webhook_logs');
-    logs = raw ? JSON.parse(raw) : [];
+    logs = await collectRecentLogs(env);
   } catch (e) {
     kvError = e.message;
   }
