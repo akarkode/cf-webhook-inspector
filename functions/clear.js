@@ -10,7 +10,7 @@ async function deleteAllLogs(env) {
         await Promise.all(batch.map(({ name }) => env.LOGS.delete(name)));
       }
     }
-    cursor = res.list_complete ? null : res.cursor;
+    cursor = res.cursor || null;
   } while (cursor);
 }
 
