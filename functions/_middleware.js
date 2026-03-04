@@ -2,7 +2,8 @@ const MAX_BODY_LENGTH = 500;
 import { LOG_PREFIX, LOG_TTL_SECONDS, INVERT_BASE } from './_constants';
 
 function buildLogKey(now) {
-  const tsPart = String(Math.max(0, INVERT_BASE - now)).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
+  const inverted = INVERT_BASE - now;
+  const tsPart = String(inverted > 0 ? inverted : 0).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
   const rand = crypto.randomUUID();
   return `${LOG_PREFIX}${tsPart}:${rand}`;
 }
