@@ -1,0 +1,9 @@
+name = "cf-webhook-inspector"
+pages_build_output_dir = "."
+
+# Replace the `id` value below with your actual KV namespace ID.
+# Create a KV namespace with: wrangler kv:namespace create LOGS
+# Then copy the generated ID here.
+[[kv_namespaces]]
+binding = "LOGS"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
