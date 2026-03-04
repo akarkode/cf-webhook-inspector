@@ -4,9 +4,7 @@ const LOG_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 function buildLogKey(now) {
   const tsPart = String(now).padStart(13, '0');
-  const rand = typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : Math.random().toString(16).slice(2);
+  const rand = crypto.randomUUID();
   return `${LOG_PREFIX}${tsPart}:${rand}`;
 }
 
