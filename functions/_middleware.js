@@ -53,9 +53,9 @@ export async function onRequest(context) {
         country,
         status: response.status,
       };
-       await env.LOGS.put(buildLogKey(now), JSON.stringify(entry), {
-         expirationTtl: LOG_TTL_SECONDS,
-       });
+      await env.LOGS.put(buildLogKey(now), JSON.stringify(entry), {
+        expirationTtl: LOG_TTL_SECONDS,
+      });
     } catch (_) {}
   }
 
