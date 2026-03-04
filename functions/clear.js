@@ -5,6 +5,7 @@ async function deleteAllLogs(env) {
   do {
     const res = await env.LOGS.list({ prefix: LOG_PREFIX, cursor, limit: 1000 });
     if (res.keys.length) {
+      // Delete in smaller batches to reduce per-request KV concurrency spikes.
       for (let i = 0; i < res.keys.length; i += 100) {
         const batch = res.keys.slice(i, i + 100);
         await Promise.all(batch.map(({ name }) => env.LOGS.delete(name)));

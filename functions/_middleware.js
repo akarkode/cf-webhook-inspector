@@ -1,11 +1,11 @@
 const MAX_BODY_LENGTH = 500;
 const LOG_PREFIX = 'log:';
 const LOG_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+// Invert timestamps so KV.list() returns newest entries first when sorted lexicographically.
 const INVERT_BASE = Number.MAX_SAFE_INTEGER;
 
 function buildLogKey(now) {
-  const safeNow = Math.min(INVERT_BASE, now);
-  const tsPart = String(INVERT_BASE - safeNow).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
+  const tsPart = String(INVERT_BASE - now).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
   const rand = crypto.randomUUID();
   return `${LOG_PREFIX}${tsPart}:${rand}`;
 }
