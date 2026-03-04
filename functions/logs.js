@@ -28,7 +28,10 @@ async function collectRecentLogs(env) {
       limit: MAX_LOG_ENTRIES,
     });
     keys.push(...res.keys.map((k) => k.name));
-    cursor = res.list_complete || keys.length >= MAX_LOG_ENTRIES ? null : res.cursor;
+    cursor = res.list_complete ? null : res.cursor;
+    if (keys.length >= MAX_LOG_ENTRIES) {
+      cursor = null;
+    }
   } while (cursor);
 
   const sorted = keys.sort((a, b) => (a < b ? 1 : -1)).slice(0, MAX_LOG_ENTRIES);
