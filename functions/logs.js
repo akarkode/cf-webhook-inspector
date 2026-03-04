@@ -1,4 +1,4 @@
-import { LOG_PREFIX, MAX_LOG_ENTRIES, LOG_TTL_DAYS } from './_constants';
+import { KV_READ_BATCH_SIZE, LOG_PREFIX, MAX_LOG_ENTRIES, LOG_TTL_DAYS } from './_constants';
 
 // Escape HTML special characters for safe embedding in HTML attributes / text nodes.
 function escapeHtml(s) {
@@ -27,8 +27,8 @@ async function collectRecentLogs(env) {
   const logs = [];
 
   // Batch reads to avoid overwhelming KV with a single large Promise.all.
-  for (let i = 0; i < keys.length; i += 20) {
-    const batchNames = keys.slice(i, i + 20).map((k) => k.name);
+  for (let i = 0; i < keys.length; i += KV_READ_BATCH_SIZE) {
+    const batchNames = keys.slice(i, i + KV_READ_BATCH_SIZE).map((k) => k.name);
     const chunk = await Promise.all(batchNames.map((name) => env.LOGS.get(name, { type: 'json' })));
     logs.push(...chunk.filter(Boolean));
   }

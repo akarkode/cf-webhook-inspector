@@ -1,4 +1,4 @@
-import { LOG_PREFIX } from './_constants';
+import { KV_DELETE_BATCH_SIZE, LOG_PREFIX } from './_constants';
 
 async function deleteAllLogs(env) {
   let cursor;
@@ -6,8 +6,8 @@ async function deleteAllLogs(env) {
     const res = await env.LOGS.list({ prefix: LOG_PREFIX, cursor, limit: 1000 });
     if (res.keys.length) {
       // Delete in smaller batches to reduce per-request KV concurrency spikes.
-      for (let i = 0; i < res.keys.length; i += 100) {
-        const batch = res.keys.slice(i, i + 100);
+      for (let i = 0; i < res.keys.length; i += KV_DELETE_BATCH_SIZE) {
+        const batch = res.keys.slice(i, i + KV_DELETE_BATCH_SIZE);
         await Promise.all(batch.map(({ name }) => env.LOGS.delete(name)));
       }
     }

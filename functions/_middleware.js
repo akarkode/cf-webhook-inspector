@@ -1,6 +1,5 @@
 const MAX_BODY_LENGTH = 500;
 import { LOG_PREFIX, LOG_TTL_SECONDS, INVERT_BASE } from './_constants';
-// Invert timestamps so KV.list() returns newest entries first when sorted lexicographically.
 
 function buildLogKey(now) {
   const tsPart = String(Math.max(0, INVERT_BASE - now)).padStart(16, '0'); // inverted timestamp keeps newest keys first lexicographically
